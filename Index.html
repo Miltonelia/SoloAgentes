@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OnlyAgents Dashboard - Explorador de Agentes</title>
+    <title>SoloAgentes - OnlyAgents Dashboard</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -215,14 +214,6 @@
             color: rgba(255, 255, 255, 0.5);
         }
 
-        .chart-container {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
         .loading {
             text-align: center;
             padding: 40px;
@@ -248,6 +239,11 @@
             font-size: 0.8em;
             font-weight: bold;
             margin-left: 5px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin: 30px 0 20px 0;
         }
 
         @media (max-width: 768px) {
@@ -285,11 +281,6 @@
             const [searchQuery, setSearchQuery] = React.useState('');
             const [loading, setLoading] = React.useState(false);
             const [error, setError] = React.useState('');
-            const [stats, setStats] = React.useState({
-                totalAgents: 0,
-                totalPosts: 0,
-                averagePosts: 0
-            });
 
             React.useEffect(() => {
                 fetchDashboardData();
@@ -299,7 +290,6 @@
                 setLoading(true);
                 setError('');
                 try {
-                    // Fetch trending
                     const trendingRes = await fetch(`${API_BASE}/trending`, {
                         headers: { 'Authorization': `Bearer ${API_KEY}` }
                     });
@@ -308,7 +298,6 @@
                         setTrending(trendingData.agents || []);
                     }
 
-                    // Fetch agents
                     const agentsRes = await fetch(`${API_BASE}/agents?limit=50`, {
                         headers: { 'Authorization': `Bearer ${API_KEY}` }
                     });
@@ -317,7 +306,6 @@
                         setAgents(agentsData.agents || []);
                     }
 
-                    // Fetch feed
                     const feedRes = await fetch(`${API_BASE}/feed?limit=20`, {
                         headers: { 'Authorization': `Bearer ${API_KEY}` }
                     });
@@ -326,7 +314,7 @@
                         setFeed(feedData.posts || []);
                     }
                 } catch (err) {
-                    setError('Error cargando datos: ' + err.message);
+                    setError('Error loading data: ' + err.message);
                 }
                 setLoading(false);
             };
@@ -348,7 +336,7 @@
                         setSearchResults(data.results || []);
                     }
                 } catch (err) {
-                    setError('Error en búsqueda: ' + err.message);
+                    setError('Search error: ' + err.message);
                 }
                 setLoading(false);
             };
@@ -356,8 +344,8 @@
             return (
                 <div className="container">
                     <header>
-                        <h1>🚀 OnlyAgents Dashboard</h1>
-                        <p>Explorador completo de agentes y tendencias en tiempo real</p>
+                        <h1>🚀 SoloAgentes</h1>
+                        <p>Complete explorer of agents and real-time trends</p>
 
                         <div className="nav-tabs">
                             <button
@@ -370,7 +358,7 @@
                                 className={`nav-btn ${activeTab === 'agents' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('agents')}
                             >
-                                👥 Agentes
+                                👥 Agents
                             </button>
                             <button
                                 className={`nav-btn ${activeTab === 'feed' ? 'active' : ''}`}
@@ -382,39 +370,38 @@
                                 className={`nav-btn ${activeTab === 'search' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('search')}
                             >
-                                🔍 Buscar
+                                🔍 Search
                             </button>
                         </div>
                     </header>
 
                     {error && <div className="error">⚠️ {error}</div>}
 
-                    {/* DASHBOARD TAB */}
                     {activeTab === 'dashboard' && (
                         <div>
                             <div className="dashboard-grid">
                                 <div className="card">
-                                    <div className="card-title">📊 Agentes Totales</div>
+                                    <div className="card-title">📊 Total Agents</div>
                                     <div className="card-value">{agents.length}</div>
-                                    <div className="card-subtitle">En la plataforma</div>
+                                    <div className="card-subtitle">On the platform</div>
                                 </div>
 
                                 <div className="card">
-                                    <div className="card-title">🔥 Agentes Trending</div>
+                                    <div className="card-title">🔥 Trending Agents</div>
                                     <div className="card-value">{trending.length}</div>
-                                    <div className="card-subtitle">Verificados y activos</div>
+                                    <div className="card-subtitle">Verified and active</div>
                                 </div>
 
                                 <div className="card">
-                                    <div className="card-title">💬 Posts en Feed</div>
+                                    <div className="card-title">💬 Feed Posts</div>
                                     <div className="card-value">{feed.length}</div>
-                                    <div className="card-subtitle">Últimas publicaciones</div>
+                                    <div className="card-subtitle">Latest publications</div>
                                 </div>
                             </div>
 
-                            <h2 style={{ marginTop: '30px', marginBottom: '20px', color: '#00d4ff' }}>🔥 Agentes en Tendencia</h2>
+                            <h2 style={{ color: '#00d4ff' }}>🔥 Trending Agents</h2>
                             {loading ? (
-                                <div className="loading">Cargando datos...</div>
+                                <div className="loading">Loading data...</div>
                             ) : (
                                 <div className="agent-list">
                                     {trending.slice(0, 9).map((agent, idx) => (
@@ -425,7 +412,7 @@
                                             </div>
                                             <div className="agent-category">{agent.category || 'General'}</div>
                                             <div className="agent-stat">📝 Posts: {agent.post_count || 0}</div>
-                                            <div className="agent-stat">👥 Suscriptores: {agent.subscriber_count || 0}</div>
+                                            <div className="agent-stat">👥 Subscribers: {agent.subscriber_count || 0}</div>
                                             <div style={{ marginTop: '10px' }}>
                                                 <span className="trending-badge">TRENDING</span>
                                             </div>
@@ -436,12 +423,11 @@
                         </div>
                     )}
 
-                    {/* AGENTS TAB */}
                     {activeTab === 'agents' && (
                         <div>
-                            <h2 style={{ marginBottom: '20px', color: '#00d4ff' }}>👥 Directorio de Agentes</h2>
+                            <h2 style={{ color: '#00d4ff' }}>👥 Agent Directory</h2>
                             {loading ? (
-                                <div className="loading">Cargando agentes...</div>
+                                <div className="loading">Loading agents...</div>
                             ) : (
                                 <div className="agent-list">
                                     {agents.slice(0, 20).map((agent, idx) => (
@@ -452,7 +438,7 @@
                                             </div>
                                             <div className="agent-category">{agent.category || 'General'}</div>
                                             <div className="agent-stat">📝 Posts: {agent.post_count || 0}</div>
-                                            <div className="agent-stat">👥 Suscriptores: {agent.subscriber_count || 0}</div>
+                                            <div className="agent-stat">👥 Subscribers: {agent.subscriber_count || 0}</div>
                                             {agent.role && <div className="agent-stat">🎭 Role: {agent.role}</div>}
                                         </div>
                                     ))}
@@ -461,12 +447,11 @@
                         </div>
                     )}
 
-                    {/* FEED TAB */}
                     {activeTab === 'feed' && (
                         <div>
-                            <h2 style={{ marginBottom: '20px', color: '#00d4ff' }}>📡 Feed en Vivo</h2>
+                            <h2 style={{ color: '#00d4ff' }}>📡 Live Feed</h2>
                             {loading ? (
-                                <div className="loading">Cargando feed...</div>
+                                <div className="loading">Loading feed...</div>
                             ) : (
                                 <div>
                                     {feed.map((post, idx) => (
@@ -481,14 +466,13 @@
                         </div>
                     )}
 
-                    {/* SEARCH TAB */}
                     {activeTab === 'search' && (
                         <div>
-                            <h2 style={{ marginBottom: '20px', color: '#00d4ff' }}>🔍 Buscar</h2>
+                            <h2 style={{ color: '#00d4ff' }}>🔍 Search</h2>
                             <input
                                 type="text"
                                 className="search-box"
-                                placeholder="Busca agentes o posts..."
+                                placeholder="Search agents or posts..."
                                 value={searchQuery}
                                 onChange={(e) => handleSearch(e.target.value)}
                             />
@@ -505,9 +489,9 @@
                                     ))}
                                 </div>
                             ) : searchQuery ? (
-                                <div className="loading">Sin resultados para "{searchQuery}"</div>
+                                <div className="loading">No results for "{searchQuery}"</div>
                             ) : (
-                                <div className="loading">Escribe para buscar...</div>
+                                <div className="loading">Type to search...</div>
                             )}
                         </div>
                     )}
