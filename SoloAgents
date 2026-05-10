@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnlyAgents Dashboard - Explorador de Agentes</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff, #ff006e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid #00d4ff;
+            color: #00d4ff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .nav-btn.active {
+            background: #00d4ff;
+            color: #1a1a2e;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.2);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+
+        .card-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .card-subtitle {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #00d4ff;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1em;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .agent-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .agent-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-3px);
+            border-color: #00d4ff;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .agent-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: #00d4ff;
+        }
+
+        .agent-category {
+            display: inline-block;
+            background: rgba(255, 0, 110, 0.2);
+            color: #ff006e;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+        }
+
+        .agent-stat {
+            font-size: 0.9em;
+            margin: 5px 0;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .verified-badge {
+            display: inline-block;
+            background: #00d4ff;
+            color: #1a1a2e;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .feed-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #00d4ff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .feed-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .feed-author {
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+
+        .feed-content {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .feed-time {
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00d4ff;
+            font-size: 1.1em;
+        }
+
+        .error {
+            background: rgba(255, 0, 110, 0.1);
+            border: 2px solid #ff006e;
+            color: #ff006e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .trending-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff006e, #ffb703);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .nav-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const API_KEY = 'b3f30795f7eef3e58172a735a6b200bd676d93eb3d9dfd684a03fc065aab4ecb';
+        const API_BASE = 'https://onlyagents.tech/api/v1';
+
+        function App() {
+            const [activeTab, setActiveTab] = React.useState('dashboard');
+            const [trending, setTrending] = React.useState([]);
+            const [agents, setAgents] = React.useState([]);
+            const [feed, setFeed] = React.useState([]);
+            const [searchResults, setSearchResults] = React.useState([]);
+            const [searchQuery, setSearchQuery] = React.useState('');
+            const [loading, setLoading] = React.useState(false);
+            const [error, setError] = React.useState('');
+            const [stats, setStats] = React.useState({
+                totalAgents: 0,
+                totalPosts: 0,
+                averagePosts: 0
+            });
+
+            React.useEffect(() => {
+                fetchDashboardData();
+            }, []);
+
+            const fetchDashboardData = async () => {
+                setLoading(true);
+                setError('');
+                try {
+                    // Fetch trending
+                    const trendingRes = await fetch(`${API_BASE}/trending`, {
+                        headers: { 'Authorization': `Bearer ${API_KEY}` }
+                    });
+                    if (trendingRes.ok) {
+                        const trendingData = await trendingRes.json();
+                        setTrending(trendingData.agents || []);
+                    }
+
+                    // Fetch agents
+                    const agentsRes = await fetch(`${API_BASE}/agents?limit=50`, {
+                        headers: { 'Authorization': `Bearer ${API_KEY}` }
+                    });
+                    if (agentsRes.ok) {
+                        const agentsData = await agentsRes.json();
+                        setAgents(agentsData.agents || []);
+                    }
+
+                    // Fetch feed
+                    const feedRes = await fetch(`${API_BASE}/feed?limit=20`, {
+                        headers: { 'Authorization': `Bearer ${API_KEY}` }
+                    });
+                    if (feedRes.ok) {
+                        const feedData = await feedRes.json();
+                        setFeed(feedData.posts || []);
+                    }
+                } catch (err) {
+                    setError('Error cargando datos: ' + err.message);
+                }
+                setLoading(false);
+            };
+
+            const handleSearch = async (query) => {
+                setSearchQuery(query);
+                if (query.length < 2) {
+                    setSearchResults([]);
+                    return;
+                }
+
+                setLoading(true);
+                try {
+                    const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}`, {
+                        headers: { 'Authorization': `Bearer ${API_KEY}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        setSearchResults(data.results || []);
+                    }
+                } catch (err) {
+                    setError('Error en búsqueda: ' + err.message);
+                }
+                setLoading(false);
+            };
+
+            return (
+                <div className="container">
+                    <header>
+                        <h1>🚀 OnlyAgents Dashboard</h1>
+                        <p>Explorador completo de agentes y tendencias en tiempo real</p>
+
+                        <div className="nav-tabs">
+                            <button
+                                className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('dashboard')}
+                            >
+                                📊 Dashboard
+                            </button>
+                            <button
+                                className={`nav-btn ${activeTab === 'agents' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('agents')}
+                            >
+                                👥 Agentes
+                            </button>
+                            <button
+                                className={`nav-btn ${activeTab === 'feed' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('feed')}
+                            >
+                                📡 Feed
+                            </button>
+                            <button
+                                className={`nav-btn ${activeTab === 'search' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('search')}
+                            >
+                                🔍 Buscar
+                            </button>
+                        </div>
+                    </header>
+
+                    {error && <div className="error">⚠️ {error}</div>}
+
+                    {/* DASHBOARD TAB */}
+                    {activeTab === 'dashboard' && (
+                        <div>
+                            <div className="dashboard-grid">
+                                <div className="card">
+                                    <div className="card-title">📊 Agentes Totales</div>
+                                    <div className="card-value">{agents.length}</div>
+                                    <div className="card-subtitle">En la plataforma</div>
+                                </div>
+
+                                <div className="card">
+                                    <div className="card-title">🔥 Agentes Trending</div>
+                                    <div className="card-value">{trending.length}</div>
+                                    <div className="card-subtitle">Verificados y activos</div>
+                                </div>
+
+                                <div className="card">
+                                    <div className="card-title">💬 Posts en Feed</div>
+                                    <div className="card-value">{feed.length}</div>
+                                    <div className="card-subtitle">Últimas publicaciones</div>
+                                </div>
+                            </div>
+
+                            <h2 style={{ marginTop: '30px', marginBottom: '20px', color: '#00d4ff' }}>🔥 Agentes en Tendencia</h2>
+                            {loading ? (
+                                <div className="loading">Cargando datos...</div>
+                            ) : (
+                                <div className="agent-list">
+                                    {trending.slice(0, 9).map((agent, idx) => (
+                                        <div key={idx} className="agent-card">
+                                            <div className="agent-name">
+                                                @{agent.username}
+                                                {agent.verified && <span className="verified-badge">✓</span>}
+                                            </div>
+                                            <div className="agent-category">{agent.category || 'General'}</div>
+                                            <div className="agent-stat">📝 Posts: {agent.post_count || 0}</div>
+                                            <div className="agent-stat">👥 Suscriptores: {agent.subscriber_count || 0}</div>
+                                            <div style={{ marginTop: '10px' }}>
+                                                <span className="trending-badge">TRENDING</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* AGENTS TAB */}
+                    {activeTab === 'agents' && (
+                        <div>
+                            <h2 style={{ marginBottom: '20px', color: '#00d4ff' }}>👥 Directorio de Agentes</h2>
+                            {loading ? (
+                                <div className="loading">Cargando agentes...</div>
+                            ) : (
+                                <div className="agent-list">
+                                    {agents.slice(0, 20).map((agent, idx) => (
+                                        <div key={idx} className="agent-card">
+                                            <div className="agent-name">
+                                                @{agent.username}
+                                                {agent.verified && <span className="verified-badge">✓</span>}
+                                            </div>
+                                            <div className="agent-category">{agent.category || 'General'}</div>
+                                            <div className="agent-stat">📝 Posts: {agent.post_count || 0}</div>
+                                            <div className="agent-stat">👥 Suscriptores: {agent.subscriber_count || 0}</div>
+                                            {agent.role && <div className="agent-stat">🎭 Role: {agent.role}</div>}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* FEED TAB */}
+                    {activeTab === 'feed' && (
+                        <div>
+                            <h2 style={{ marginBottom: '20px', color: '#00d4ff' }}>📡 Feed en Vivo</h2>
+                            {loading ? (
+                                <div className="loading">Cargando feed...</div>
+                            ) : (
+                                <div>
+                                    {feed.map((post, idx) => (
+                                        <div key={idx} className="feed-item">
+                                            <div className="feed-author">@{post.agent_username}</div>
+                                            <div className="feed-content">{post.content}</div>
+                                            <div className="feed-time">📅 {new Date(post.created_at).toLocaleString()}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* SEARCH TAB */}
+                    {activeTab === 'search' && (
+                        <div>
+                            <h2 style={{ marginBottom: '20px', color: '#00d4ff' }}>🔍 Buscar</h2>
+                            <input
+                                type="text"
+                                className="search-box"
+                                placeholder="Busca agentes o posts..."
+                                value={searchQuery}
+                                onChange={(e) => handleSearch(e.target.value)}
+                            />
+
+                            {searchResults.length > 0 ? (
+                                <div className="agent-list">
+                                    {searchResults.map((result, idx) => (
+                                        <div key={idx} className="agent-card">
+                                            <div className="agent-name">{result.name || result.username}</div>
+                                            {result.category && <div className="agent-category">{result.category}</div>}
+                                            {result.content && <div className="feed-content">{result.content.substring(0, 100)}...</div>}
+                                            <div className="agent-stat">📝 Posts: {result.post_count || 0}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : searchQuery ? (
+                                <div className="loading">Sin resultados para "{searchQuery}"</div>
+                            ) : (
+                                <div className="loading">Escribe para buscar...</div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
