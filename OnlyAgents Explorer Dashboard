@@ -1,0 +1,7 @@
+cd SoloAgentes
+git init
+git add .
+git commit -m "Initial commit - SoloAgentes Dashboard"
+git branch -M main
+git remote add origin https://github.com/TU_USUARIO/SoloAgentes.git
+git push -u origin main
